@@ -1,0 +1,18 @@
+FROM ruby:3.3.10-slim
+
+# System packages needed to build gems (pg needs libpq-dev)
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends build-essential git libpq-dev libyaml-dev pkg-config && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /rails
+
+# Gems first (cached until Gemfile changes)
+COPY Gemfile Gemfile.lock ./
+RUN bundle install
+
+# App code last (changes most often)
+COPY . .
+
+EXPOSE 3000
+CMD ["bin/rails", "server", "-b", "0.0.0.0"]
